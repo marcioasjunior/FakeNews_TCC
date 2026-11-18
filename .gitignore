@@ -1,0 +1,7 @@
+resultados/
+*.txt
+__pycache__
+*.csv
+Dataset/
+
+!requirements.txt
