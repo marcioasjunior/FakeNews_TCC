@@ -82,6 +82,8 @@ def mostrarResultados():
     mostrarTabela("LIME: fidelidade",
                    os.path.join(r, 'lime', 'global', 'fidelidade_lime.csv'))
     comparar_palavras('shap', 'comparacao_top20_modelos_amostra150.csv', 'lime')
+    mostrarTabela("Acerto usando só o tamanho do texto",
+                   os.path.join(r, 'tamanho_igualado', 'acerto_so_tamanho.csv'))
     mostrarTabela("Tamanho igualado: texto completo x tamanho igualado",
                    os.path.join(r, 'tamanho_igualado', 'tabela_para_texto.csv'))
 

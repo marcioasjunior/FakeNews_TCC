@@ -20,6 +20,10 @@ MAX_PALAVRAS = 10000
 def carregarDados(caminho=CAMINHO_CSV):
     return pd.read_csv(caminho, index_col='index')
 
+def estatisticas_tamanho(dados):
+    num_palavras = dados['preprocessed_news'].str.split().str.len()
+    return num_palavras.groupby(dados['label']).agg(['mean', 'median'])
+
 
 def separar_treino(dados):
     return train_test_split(
@@ -59,6 +63,9 @@ def preparar_experimento(mostrar=True):
     if mostrar:
         print(f"\n--- Leitura concluída! {len(dados)} documentos. ---")
         print(dados['label'].value_counts().to_string())
+        print("\nPalavras por notícia (média e mediana):")
+        for classe, linha in estatisticas_tamanho(dados).iterrows():
+            print(f"{classe:>5}: média = {linha['mean']:.0f} | mediana = {linha['median']:.0f}")
 
     textos_treino, textos_teste, rotulos_treino, rotulos_teste = separar_treino(dados)
     if mostrar:

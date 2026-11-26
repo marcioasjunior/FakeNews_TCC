@@ -6,9 +6,10 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import GroupKFold, cross_validate
 from sklearn.pipeline import make_pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression  
 from sklearn.metrics import accuracy_score, f1_score
 
-from preparacao import (vet_textos, criarModelos, treinarModelos,
+from preparacao import (vet_textos, criarModelos, treinarModelos, separar_treino,
                         SEMENTE, MAX_PALAVRAS, PASTA_RESULTADOS)
 from corpus_original import (PASTA_TEXTOS_COMPLETOS, preparar_texto, lerTexto,
                              listar_textos, carregar_pares,
@@ -150,6 +151,29 @@ tabResumo = pd.DataFrame(dados_resumo)
 tabela_rodadas.to_csv(os.path.join(pasta_saida, 'cv_por_pares_por_rodada.csv'), index=False)
 tabResumo.to_csv(os.path.join(pasta_saida, 'cv_por_pares_resumo.csv'), index=False)
 
+
+####-----------------------------------------------------------------------------------------------------
+####Foi implementado para exemplificar como ficaria o treino apenas contando a qtd de palavras
+
+treino_texto, teste_texto, treino_rotulo, teste_rotulo = separar_treino(dados_completo)
+
+def log_palavras(textos):
+    return np.log(textos.str.split().str.len().values).reshape(-1, 1)
+
+modelo_tamanho = LogisticRegression().fit(log_palavras(treino_texto), treino_rotulo)
+previsto_tamanho = modelo_tamanho.predict(log_palavras(teste_texto))
+corte = np.exp(-modelo_tamanho.intercept_[0] / modelo_tamanho.coef_[0][0])
+
+tabSoTamanho = pd.DataFrame([{
+    'Acurácia': round(accuracy_score(teste_rotulo, previsto_tamanho), 4),
+    'F1': round(f1_score(teste_rotulo, previsto_tamanho, average='weighted'), 4),
+    'Corte (palavras)': round(corte),
+}])
+tabSoTamanho.to_csv(os.path.join(pasta_saida, 'acerto_so_tamanho.csv'), index=False)
+print("\nSó o tamanho (Regressão Logística com o log do número de palavras):")
+print(tabSoTamanho.to_string(index=False))
+print(f"  Abaixo de {corte:.0f} palavras -> fake; acima -> true")
+####-----------------------------------------------------------------------------------------------------
 
 def buscar(tabela, versao, nome, coluna):
     linha = tabela[(tabela['Versão'] == versao) & (tabela['Modelo'] == nome)]
